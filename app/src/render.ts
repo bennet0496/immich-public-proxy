@@ -5,12 +5,14 @@ import { canDownload, getConfigOption } from './functions'
 import archiver from 'archiver'
 import { respondToInvalidRequest } from './invalidRequestHandler'
 import { sanitize } from './includes/sanitize'
+import { bootstrap } from 'global-agent'
 
 class Render {
   lgConfig
 
   constructor () {
     this.lgConfig = getConfigOption('lightGallery', {})
+    bootstrap()
   }
 
   /**

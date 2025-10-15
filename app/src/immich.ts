@@ -14,8 +14,13 @@ import { addResponseHeaders, canDownload, getConfigOption, log } from './functio
 import render from './render'
 import { Response } from 'express-serve-static-core'
 import { respondToInvalidRequest } from './invalidRequestHandler'
+import { bootstrap } from 'global-agent'
 
 class Immich {
+  constructor () {
+    bootstrap()
+  }
+
   /**
    * Make a request to Immich API. We're not using the SDK to limit
    * the possible attack surface of this app.
