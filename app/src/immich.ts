@@ -14,31 +14,6 @@ import { addResponseHeaders, canDownload, getConfigOption, log } from './functio
 import render from './render'
 import { Response } from 'express-serve-static-core'
 import { respondToInvalidRequest } from './invalidRequestHandler'
-import fetch from 'node-fetch'
-import { HttpsProxyAgent } from 'https-proxy-agent'
-import http from 'node:http'
-import https from 'node:https'
-
-const httpAgent = new http.Agent({
-  keepAlive: true
-})
-const httpsAgent = new https.Agent({
-  keepAlive: true
-})
-
-const fetchOptions = {
-  agent: function (_parsedURL: URL) {
-    if (process.env.HTTP_PROXY !== undefined || process.env.http_proxy !== undefined) {
-      return new HttpsProxyAgent(`${process.env.HTTP_PROXY ?? process.env.http_proxy}`)
-    } else {
-      if (_parsedURL.protocol === 'http:') {
-        return httpAgent
-      } else {
-        return httpsAgent
-      }
-    }
-  }
-}
 
 class Immich {
   /**
@@ -47,7 +22,7 @@ class Immich {
    */
   async request (endpoint: string) {
     try {
-      const res = await fetch(this.apiUrl() + endpoint, fetchOptions)
+      const res = await fetch(this.apiUrl() + endpoint)
       if (res.status === 200) {
         const contentType = res.headers.get('Content-Type') || ''
         if (contentType.includes('application/json')) {
@@ -172,9 +147,9 @@ class Immich {
       [keyType]: key,
       password
     })
-    const res = await fetch(url, fetchOptions)
+    const res = await fetch(url)
     if ((res.headers.get('Content-Type') || '').toLowerCase().includes('application/json')) {
-      const jsonBody : any = await res.json()
+      const jsonBody = await res.json()
       if (jsonBody) {
         if (res.status === 200) {
           // Normal response - get the shared assets
@@ -187,7 +162,7 @@ class Immich {
             const albumRes = await fetch(this.buildUrl(this.apiUrl() + '/albums/' + link?.album?.id, {
               [keyType]: key,
               password
-            }), fetchOptions)
+            }))
             const album = await albumRes.json() as Album
             if (!album?.id) {
               log('Invalid album ID - ' + link?.album?.id)
@@ -257,7 +232,7 @@ class Immich {
    * Get the content-type of a video, for passing back to lightGallery
    */
   async getVideoContentType (asset: Asset) {
-    const data : any = await this.request(this.buildUrl('/assets/' + encodeURIComponent(asset.id) + '/video/playback', {
+    const data = await this.request(this.buildUrl('/assets/' + encodeURIComponent(asset.id) + '/video/playback', {
       [asset.keyType]: asset.key,
       password: asset.password
     }))

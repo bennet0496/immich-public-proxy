@@ -11,6 +11,9 @@ import { Asset, AssetType, ImageSize, KeyType } from './types'
 import { addResponseHeaders, getConfigOption, toString } from './functions'
 import { decrypt, encrypt } from './encrypt'
 import { respondToInvalidRequest } from './invalidRequestHandler'
+import { bootstrap } from 'global-agent'
+
+bootstrap()
 
 // Extend the Request type with a `password` property
 declare module 'express-serve-static-core' {
