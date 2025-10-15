@@ -174,7 +174,7 @@ class Immich {
     })
     const res = await fetch(url, fetchOptions)
     if ((res.headers.get('Content-Type') || '').toLowerCase().includes('application/json')) {
-      const jsonBody = await res.json()
+      const jsonBody : any = await res.json()
       if (jsonBody) {
         if (res.status === 200) {
           // Normal response - get the shared assets
@@ -257,7 +257,7 @@ class Immich {
    * Get the content-type of a video, for passing back to lightGallery
    */
   async getVideoContentType (asset: Asset) {
-    const data = await this.request(this.buildUrl('/assets/' + encodeURIComponent(asset.id) + '/video/playback', {
+    const data : any = await this.request(this.buildUrl('/assets/' + encodeURIComponent(asset.id) + '/video/playback', {
       [asset.keyType]: asset.key,
       password: asset.password
     }))
