@@ -14,6 +14,31 @@ import { addResponseHeaders, canDownload, getConfigOption, log } from './functio
 import render from './render'
 import { Response } from 'express-serve-static-core'
 import { respondToInvalidRequest } from './invalidRequestHandler'
+import fetch from 'node-fetch'
+import { HttpsProxyAgent } from 'https-proxy-agent'
+import http from 'node:http'
+import https from 'node:https'
+
+const httpAgent = new http.Agent({
+  keepAlive: true
+})
+const httpsAgent = new https.Agent({
+  keepAlive: true
+})
+
+const fetchOptions = {
+  agent: function (_parsedURL: URL) {
+    if (process.env.HTTP_PROXY !== undefined || process.env.http_proxy !== undefined) {
+      return new HttpsProxyAgent(`${process.env.HTTP_PROXY ?? process.env.http_proxy}`)
+    } else {
+      if (_parsedURL.protocol === 'http:') {
+        return httpAgent
+      } else {
+        return httpsAgent
+      }
+    }
+  }
+}
 
 class Immich {
   /**
@@ -22,7 +47,7 @@ class Immich {
    */
   async request (endpoint: string) {
     try {
-      const res = await fetch(this.apiUrl() + endpoint)
+      const res = await fetch(this.apiUrl() + endpoint, fetchOptions)
       if (res.status === 200) {
         const contentType = res.headers.get('Content-Type') || ''
         if (contentType.includes('application/json')) {
@@ -147,7 +172,7 @@ class Immich {
       [keyType]: key,
       password
     })
-    const res = await fetch(url)
+    const res = await fetch(url, fetchOptions)
     if ((res.headers.get('Content-Type') || '').toLowerCase().includes('application/json')) {
       const jsonBody = await res.json()
       if (jsonBody) {
@@ -162,7 +187,7 @@ class Immich {
             const albumRes = await fetch(this.buildUrl(this.apiUrl() + '/albums/' + link?.album?.id, {
               [keyType]: key,
               password
-            }))
+            }), fetchOptions)
             const album = await albumRes.json() as Album
             if (!album?.id) {
               log('Invalid album ID - ' + link?.album?.id)
